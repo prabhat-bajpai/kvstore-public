@@ -1,0 +1,36 @@
+{"object":
+	{
+	"buffer_size": 5,
+	"peers":
+		[{
+			"logdir":"log1.txt",
+			"id": 1,
+			"host": "localhost:4770",
+			"timeout": 1000
+		},
+		{
+			"logdir":"log2.txt",
+			"id": 2,
+			"host": "localhost:4771",	
+			"timeout": 1500
+		},
+		{
+			"logdir":"log3.txt",
+			"id": 3,
+			"host": "localhost:4772",
+			"timeout": 2000
+		},
+		{
+			"logdir":"log4.txt",
+			"id": 4,
+			"host": "localhost:4773",
+			"timeout": 2500
+		},
+		{
+			"logdir":"log5.txt",
+			"id": 5,
+			"host": "localhost:4774",
+			"timeout": 3000
+		}]
+	}
+}
