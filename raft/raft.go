@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	cluster "github.com/pebbe/cluster"
+	cluster "github.com/prabhat-bajpai/kvstore-public/tree/master/raft/cluster"
 	zmq "github.com/pebbe/zmq4"
 	"time"
 	//"math"
@@ -190,7 +190,7 @@ func main() {
 	myid, _ := strconv.Atoi(id)
 
 	// Initialize server object
-	server := New(myid /* config file */, "peer.json")
+	server := New(myid /* config file */, "github.com/prabhat-bajpai/kvstore-public/tree/master/raft/peer.json")
 
 	// This channel contain term of leader
 	heartbeat_interm := make(chan int, 1)
