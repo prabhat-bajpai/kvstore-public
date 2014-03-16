@@ -1,6 +1,6 @@
 #Raft Leader Election
 
-`Raft` is a algorithm Raft is a consensus algorithm for managinga replicated log. Here in `Raft Leader Election` i implement only leader election part. In this algorithm one of the raft server work as a leader and here i choose that leader using this algorithm.
+`Raft` Raft is a consensus algorithm for managinga replicated log. Here in `Raft Leader Election` i implement only leader election part. In this algorithm one of the raft server work as a leader and here i choose that leader using this algorithm.
 
 #Usage
 
