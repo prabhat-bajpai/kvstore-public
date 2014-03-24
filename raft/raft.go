@@ -83,42 +83,46 @@ func raft_test(port string, server *Replicator, done chan bool, phase *int) {
 // leader , 2 :- grant msg from follower
 // other bits tell term of the sender
 func receive_m(server *Replicator, heartbeat_interm chan int, candidate_interm chan int, done chan bool, lead chan bool, phase *int, count *int) {
+	voteFor := 0
 	for {
 		envelope := <-server.Inbox() //If any massage in inbox
+		term := envelope.Msg.(int) / 4
+		msg := envelope.Msg.(int) % 4
 
-		if envelope.Msg.(int)%4 == 1 {
-			if *phase == 2 {
-				term := envelope.Msg.(int) / 4
-				if term > server.Get_Term() {
-					heartbeat_interm <- term
-				}
-			} else {
-				term := envelope.Msg.(int) / 4
+		if term >= server.Get_Term() {
+			//Heartbeat Message
+			if msg == 1 {
 				heartbeat_interm <- term
-			}
-		} else if envelope.Msg.(int)%4 == 0 {
-			if *phase == 0 {
-				term := envelope.Msg.(int) / 4
+				//vote request
+			} else if msg == 0 {
 				if term > server.Get_Term() {
 					candidate_interm <- term
 					server.term = term
+					voteFor = term
 					server.Outbox() <- &cluster.Envelope{Pid: envelope.Pid, Msg: server.Get_Term()*4 + 2}
-					fmt.Println("Term is = " + fmt.Sprintf("%d", term))
+				} else if term == server.Get_Term() {
+					if *phase == 0 {
+						if voteFor < term {
+							candidate_interm <- term
+							voteFor = term
+							server.Outbox() <- &cluster.Envelope{Pid: envelope.Pid, Msg: server.Get_Term()*4 + 2}
+						}
+					}
 				}
-			} else {
-				continue
-			}
-		} else {
-			if *phase == 1 {
-				term := envelope.Msg.(int) / 4
-				if term == server.Get_Term() {
+				//vote grant
+			} else if msg == 2 {
+				if *phase == 1 {
 					*count = *count + 1
 					if *count >= 3 {
 						lead <- true
 					}
 				}
 				continue
+			} else {
+				continue
 			}
+		} else {
+			continue
 		}
 		<-done
 	}
@@ -131,6 +135,11 @@ func send_m(server *Replicator, heartbeat_interm chan int, candidate_interm chan
 			timer1 := time.NewTimer(time.Millisecond * 200)
 			select {
 			case term := <-heartbeat_interm:
+				server.leader = false
+				server.term = term
+				*phase = 0
+				done <- true
+			case term := <-candidate_interm:
 				server.leader = false
 				server.term = term
 				*phase = 0
@@ -163,15 +172,11 @@ func send_m(server *Replicator, heartbeat_interm chan int, candidate_interm chan
 				done <- true
 			case <-lead:
 				server.leader = true
-				fmt.Print("leader")
 				*phase = 2
 				done <- true
 			case <-timer1.C:
 				*phase = 0
 				// Wait for some random time after candidate time out
-				//timer2 := time.NewTimer(time.Millisecond * time.Duration(server.Timeout()*rand.Intn(3)))
-				time.Sleep(time.Millisecond * time.Duration(server.Timeout()*rand.Intn(3)))
-				*phase = 1
 			}
 		}
 	}
